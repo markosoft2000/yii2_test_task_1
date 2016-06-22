@@ -2,6 +2,8 @@
 
 namespace app\controllers;
 
+use app\models\Dishes;
+use app\models\Ingredients;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -49,7 +51,68 @@ class SiteController extends Controller
 
     public function actionIndex()
     {
-        return $this->render('index');
+        $model = new Dishes();
+        $request = Yii::$app->request;
+
+        if ($request->post()) {
+            $ingredientRequest = ($request->post('Dishes', '')) ? : [];
+            $ingredientRequest = (isset($ingredientRequest['ingredients']) && !empty($ingredientRequest['ingredients'])) ?
+                $ingredientRequest['ingredients'] : [];
+
+            foreach ($ingredientRequest as &$v) {
+                $v = (int) $v;
+            }
+
+            $message = '';
+            $isFullMatch = false;
+            $result = false;
+            $data = null;
+
+            if (count($ingredientRequest) > 1) {
+                $data = $model->getFullIngredientDishes(true, 2, $ingredientRequest, Dishes::FILTER_FULL_MATCH);
+
+                if ($data->count) {
+                    $isFullMatch = $result = true;
+                } else {
+                    $data = $model->getFullIngredientDishes(true, 2, $ingredientRequest, Dishes::FILTER_PARTIAL);
+
+                    if ($data->count) {
+                        $result = true;
+                    } else {
+                        $message = 'Ничего не найдено';
+                        /*echo '<pre>';
+                        var_export($data->query->all());
+                        echo '</pre>';
+                        die('%^');*/
+                    }
+                }
+            } else {
+                $message = 'Выберите больше ингредиентов';
+            }
+
+            $ingredientRequested = (count($ingredientRequest)) ?
+                Ingredients::find()->select(['name'])->where(['id' => $ingredientRequest])->asArray()->all() : [];
+
+            return $this->render('index', [
+                'model' => $model,
+                'message' => $message,
+                'result' => $result,
+                'dataProvider' => $data,
+                'ingredients' => Ingredients::find()->all(),
+                'ingredientRequested' => $ingredientRequested,
+                'isFullMatch' => $isFullMatch,
+            ]);
+        } else {
+            return $this->render('index', [
+                'model' => $model,
+                'result' => false,
+                'message' => '',
+                'ingredients' => Ingredients::find()->all(),
+                'ingredientRequested' => [],
+            ]);
+        }
+
+        //return $this->render('index');
     }
 
     public function actionLogin()

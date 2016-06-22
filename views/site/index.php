@@ -1,53 +1,73 @@
 <?php
 
+use yii\helpers\Html;
+use \yii\helpers\ArrayHelper;
+use yii\widgets\ActiveForm;
+
 /* @var $this yii\web\View */
+/* @var $model app\models\Dishes */
+/* @var $ingredients yii\db\ActiveRecord[] */
+/* @var $dataProvider yii\data\ActiveDataProvider */
+/* @var $result boolean */
+/* @var $message string */
+/* @var $ingredientRequested array */
 
 $this->title = 'My Yii Application';
 ?>
 <div class="site-index">
 
-    <div class="jumbotron">
-        <h1>Congratulations!</h1>
+    <?php $form = ActiveForm::begin(); ?>
 
-        <p class="lead">You have successfully created your Yii-powered application.</p>
+    <?= $form->field($model, 'ingredients')->listBox(//checkboxList
+        ArrayHelper::map($ingredients, 'id', 'name'),
+        [
+            'multiple' => true
+        ]
+    ) ?>
 
-        <p><a class="btn btn-lg btn-success" href="http://www.yiiframework.com">Get started with Yii</a></p>
+    <div class="form-group">
+        <?= Html::submitButton('Show!', ['class' => 'btn btn-success']) ?>
     </div>
 
-    <div class="body-content">
+    <?php ActiveForm::end(); ?>
 
-        <div class="row">
-            <div class="col-lg-4">
-                <h2>Heading</h2>
+    <hr>
+    <strong>Выбранные ингридиенты:</strong><br>
+    <?php
+        if (count($ingredientRequested)) {
+            foreach ($ingredientRequested as $k => $v) {
+                echo "<i>{$v['name']}</i><br>";
+            }
+        } else {
+            echo 'Выберите ингредиенты из списка';
+        }
+    ?>
 
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
+    <hr>
+    <strong>Результаты поиска:</strong><br>
 
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/doc/">Yii Documentation &raquo;</a></p>
-            </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
+    <?php if ($result) { ?>
+            <i><?php
+                if ($isFullMatch) {
+                    echo "<font style='color: #00aa00'>Полное совпадение</font>";
+                } else {
+                    echo "<font style='color: #FFAA00'>Частичное совпадение</font>";
+                }
+            ?></i>
+            <?= \yii\grid\GridView::widget([
+                'dataProvider' => $dataProvider,
+                'columns' => [
+                    ['class' => 'yii\grid\SerialColumn'],
 
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
+                    'name',
+                    'visible',
 
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/forum/">Yii Forum &raquo;</a></p>
-            </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
+                    ['class' => 'yii\grid\ActionColumn'],
+                ],
+            ]); ?>
+        <?php    } else {?>
+         <?= $message ?>
+    <?php    }
+    ?>
 
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/extensions/">Yii Extensions &raquo;</a></p>
-            </div>
-        </div>
-
-    </div>
 </div>

@@ -28,6 +28,10 @@ class Dishes extends \yii\db\ActiveRecord
      */
     const STATUS_HIDDEN = 0;
 
+    const FILTER_PARTIAL = 1;
+    const FILTER_ALL = 0;
+    const FILTER_FULL_MATCH = 2;
+
     /**
      * Список ингридиентов, закреплённых за блюдом.
      * @var array
@@ -128,90 +132,63 @@ class Dishes extends \yii\db\ActiveRecord
     }
 
     /**
-     * Возвращает доступные блюда только с доступными ингридиентами
+     * Возвращает блюда только с ингридиентами,
+     * @param $visibleDishes - доступность блюда
+     * @param $minIngredientCount - минимальное количество ингридиентов в блюде
+     * @param $ingredient - массив ID ингридиентов для фильтрации (пустой массив - фильтрация отключена)
+     * @param $filter - используем константы с префиксом FILTER_ из класса Dishes для фильтрации блюд
      * @return ActiveDataProvider
      */
-    public function getVisibleIngredientDishes()
+    public function getFullIngredientDishes($visibleDishes = false, $minIngredientCount = 0, $ingredient = [], $filter = self::FILTER_ALL)
     {
-        /*return new ActiveDataProvider([
-            'query' => Dishes::find()
-        ]);*/
-        /*$q = Dishes::find()
-            ->where(['visible' => self::STATUS_VISIBLE])
-            ->orderBy(['id' => SORT_ASC])->all();
-        $q = Ingredients::find()
-            ->where(['visible' => Ingredients::STATUS_VISIBLE])
-            ->all();*/
-
-        /*
-            SELECT `d`.name, COUNT(c.`ingredient_id`) as ing
-            FROM `tbl_dishes` as `d`, `tbl_ingredient_dish` as `c`
-            WHERE c.`dish_id` = d.`id`
-            GROUP BY d.`id`
-            HAVING COUNT(c.`ingredient_id`) = (
-                SELECT COUNT(`ingredient_id`) FROM `tbl_ingredient_dish` as `c2`
-	            WHERE `c2`.`dish_id` = `d`.`id` AND `c2`.`ingredient_id` IN (SELECT `i`.`id` FROM `tbl_ingredients` as `i` WHERE `i`.`visible` = 1)
-            )
-        */
-
         $queryString = "
-            SELECT `d`.*, COUNT(c.`ingredient_id`) as ing
-            FROM `tbl_dishes` as `d`, `tbl_ingredient_dish` as `c`
-            WHERE c.`dish_id` = d.`id`
-            GROUP BY d.`id`
-            HAVING COUNT(c.`ingredient_id`) = (
-                SELECT COUNT(`ingredient_id`) FROM `tbl_ingredient_dish` as `c2`
-	            WHERE `c2`.`dish_id` = `d`.`id` AND `c2`.`ingredient_id` IN (
-	              SELECT `i`.`id` FROM `tbl_ingredients` as `i` WHERE `i`.`visible` = 1)
-            )";
+            SELECT `d`. * , COUNT( `di`.`ingredient_id` ) as `total`
+            FROM `tbl_dishes` AS `d`
+            LEFT JOIN `tbl_ingredient_dish` AS `di` ON `di`.`dish_id` = `d`.`id`
+            LEFT JOIN `tbl_ingredients` AS `i` ON `i`.`id` = `di`.`ingredient_id`
+            WHERE `i`.`visible` = 1 {{visibleDishes}} {{partial}}
+            AND `d`.`id` NOT IN (
+                SELECT `di2`.`dish_id` FROM `tbl_ingredient_dish` `di2` WHERE `di2`.`ingredient_id`IN (
+                    SELECT `i2`.`id` FROM `tbl_ingredients` `i2` WHERE `i2`.`visible` = 0))
+            GROUP BY `d`.`id`
+            HAVING `total` >= $minIngredientCount {{full}}";
+
+        if ($visibleDishes) {
+            $queryString = str_replace('{{visibleDishes}}', ' AND `d`.`visible` = 1', $queryString);
+        } else {
+            $queryString = str_replace('{{visibleDishes}}', '', $queryString);
+        }
+
+        if (self::FILTER_PARTIAL == $filter) {
+            $queryString = str_replace('{{partial}}', " AND `i`.`id` IN ({{ingredients}})", $queryString);
+            $queryString = str_replace('{{full}}', "", $queryString);
+        } elseif (self::FILTER_FULL_MATCH == $filter) {
+            $queryString = str_replace('{{partial}}', "", $queryString);
+            $queryString = str_replace('{{full}}',
+                " AND `total` = (
+                    SELECT COUNT(`di2`.`ingredient_id`)
+                    FROM `tbl_ingredient_dish` AS `di2`
+                    WHERE `di2`.`dish_id` = `d`.`id` AND `di2`.`ingredient_id` IN ({{ingredients}})
+                    )", $queryString);
+        } else {
+            $queryString = str_replace('{{partial}}', "", $queryString);
+            $queryString = str_replace('{{full}}', "", $queryString);
+        }
+
+        if (is_array($ingredient) && count($ingredient)) {
+            $ingredient = implode(',', $ingredient);
+
+            $queryString = str_replace('{{ingredients}}', " $ingredient", $queryString);
+        } else {
+            $queryString = str_replace('{{ingredients}}', '0', $queryString);
+        }
+
+        $queryString .= (self::FILTER_PARTIAL == $filter) ? " ORDER BY `total` DESC, `d`.`id` ASC" : '';
+
 
         return new ActiveDataProvider([
             'query' => $this->findBySql($queryString)
         ]);
-
-
-        $subQuery = (new Query)
-            ->select(['`c2`.`dish_id` as `sq_dish_id`, COUNT(c2.`ingredient_id`) as `current_cnt`'])
-            ->from(IngredientDish::tableName() . ' `c2`')
-            ->leftJoin(Ingredients::tableName() . ' `i`', '`i`.`id` = `c2`.`ingredient_id`')
-            ->where('`i`.`visible` = 1')
-            ->groupBy('`c2`.`dish_id`');
-            //->all();
-
-        /*$q = (new Query)
-            ->select(['`d`.`name`'])
-            ->from(Dishes::tableName() . ' `d`')
-            ->leftJoin(IngredientDish::tableName() . ' `c`', '`d`.`id` = `c`.`dish_id`')
-            ->groupBy('`d`.`id`')
-            ->having(['COUNT(`c`.`ingredient_id`)' => (
-                    (new Query)
-                        ->select(['COUNT(c2.`ingredient_id`)'])
-                        ->from(IngredientDish::tableName() . ' `c2`')
-                        ->leftJoin(Ingredients::tableName() . ' `i`', '`i`.`id` = `c2`.`ingredient_id`')
-                        //->where('`c2`.`dish_id` = `d`.`id`')
-                        ->where('`i`.`visible` = 1')
-                        ->groupBy('`c2`.`dish_id`')
-                        ->one()
-                )
-                //4
-            ])
-            ->all();*/
-        $q = (new Query)
-            ->select(['`d`.`id`', '`d`.`name`', 'COUNT(c.`ingredient_id`) as `total_cnt`', '`sq_dish_id`', '`sq`.`current_cnt`'])
-            ->from([IngredientDish::tableName() . ' `c`'])
-            ->leftJoin(Ingredients::tableName() . ' `i`', '`i`.`id` = `c`.`ingredient_id`')
-            ->leftJoin(Dishes::tableName() . ' `d`', '`d`.`id` = `c`.`dish_id`')
-            ->leftJoin(['sq' => $subQuery], '`sq`.`sq_dish_id` = `c`.`dish_id`')
-            ->groupBy('`c`.`dish_id`')
-            //->having(['COUNT(`c`.`ingredient_id`)' => (2)])
-            //->having(['`total_cnt`' => '`current_cnt`'])
-            ->having(['=', '`total_cnt`', ('4')])
-            ->all();
-
-        //var_export($subQuery);
-        echo "<hr>";
-        var_export($q);
-        die('here');
     }
 
     /**

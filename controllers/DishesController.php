@@ -56,11 +56,11 @@ class DishesController extends Controller
         ]);*/
         $dishes = new Dishes();
         /*echo "<pre>";
-        var_dump($dishes->getVisibleIngredientDishes());
+        var_dump($dishes->getFullIngredientDishes());
         echo "</pre>";*/
         //die();
         return $this->render('index', [
-            'dataProvider' => $dishes->getVisibleIngredientDishes(),
+            'dataProvider' => $dishes->getFullIngredientDishes(),
         ]);
     }
 
