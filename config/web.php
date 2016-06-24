@@ -9,10 +9,15 @@ $config = [
     'components' => [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
+            'enableCookieValidation' => true,
+            'enableCsrfValidation' => true,
             'cookieValidationKey' => 'R0d4npEIntYTI5DmGxpiNeUs-lAS7Kc-',
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
+        ],
+        'authManager' => [
+            'class' => 'yii\rbac\PhpManager',
         ],
         'user' => [
             'identityClass' => 'app\models\User',

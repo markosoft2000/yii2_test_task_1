@@ -68,7 +68,7 @@ class SiteController extends Controller
             $result = false;
             $data = null;
 
-            if (count($ingredientRequest) > 1) {
+            if (count($ingredientRequest) > 1 && count($ingredientRequest) <=5 ) {
                 $data = $model->getFullIngredientDishes(true, 2, $ingredientRequest, Dishes::FILTER_FULL_MATCH);
 
                 if ($data->count) {
@@ -80,14 +80,11 @@ class SiteController extends Controller
                         $result = true;
                     } else {
                         $message = 'Ничего не найдено';
-                        /*echo '<pre>';
-                        var_export($data->query->all());
-                        echo '</pre>';
-                        die('%^');*/
                     }
                 }
             } else {
-                $message = 'Выберите больше ингредиентов';
+                $message = (count($ingredientRequest) <= 1) ? 'Выберите больше ингредиентов' : $message;
+                $message = (count($ingredientRequest) > 5 ) ? 'Выберите меньше ингредиентов' : $message;
             }
 
             $ingredientRequested = (count($ingredientRequest)) ?
@@ -111,8 +108,6 @@ class SiteController extends Controller
                 'ingredientRequested' => [],
             ]);
         }
-
-        //return $this->render('index');
     }
 
     public function actionLogin()
@@ -122,7 +117,8 @@ class SiteController extends Controller
         }
 
         $model = new LoginForm();
-        if ($model->load(Yii::$app->request->post()) && $model->login()) {
+        //if ($model->load(Yii::$app->request->post()) && $model->login()) {
+        if ($model->load(Yii::$app->request->post()) && $model->loginAdmin()) {
             return $this->goBack();
         }
         return $this->render('login', [

@@ -21,20 +21,23 @@ class UserController extends Controller
     public function behaviors()
     {
         return [
-            /*'access' => [
+            'access' => [
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
                         'actions' => ['index', 'view', 'create', 'update', 'delete'],
                         'allow' => true,
-                        'roles' => ['admin'],
+                        'roles' => ['@'],
+                        'matchCallback' => function ($rule, $action) {
+                            return User::isUserAdmin(Yii::$app->user->identity->username);
+                        }
                     ],
                 ],
-            ],*/
+            ],
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'delete' => ['POST'],
+                    'delete' => ['user'],
                 ],
             ],
         ];
@@ -74,8 +77,7 @@ class UserController extends Controller
      */
     public function actionCreate()
     {
-        $model = new User();
-
+        $model = new User(['scenario' => 'createUser']);
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         } else {

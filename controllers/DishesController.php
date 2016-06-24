@@ -5,6 +5,7 @@ namespace app\controllers;
 use Yii;
 use app\models\Dishes;
 use app\models\Ingredients;
+use app\models\User;
 use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -22,16 +23,19 @@ class DishesController extends Controller
     public function behaviors()
     {
         return [
-            /*'access' => [
+            'access' => [
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
                         'actions' => ['index', 'view', 'create', 'update', 'delete'],
                         'allow' => true,
-                        'roles' => ['admin'],
+                        'roles' => ['@'],
+                        'matchCallback' => function ($rule, $action) {
+                            return User::isUserAdmin(Yii::$app->user->identity->username);
+                        }
                     ],
                 ],
-            ],*/
+            ],
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
@@ -47,18 +51,8 @@ class DishesController extends Controller
      */
     public function actionIndex()
     {
-        /*$dataProvider = new ActiveDataProvider([
-            'query' => Dishes::find(),
-        ]);
-
-        return $this->render('index', [
-            'dataProvider' => $dataProvider,
-        ]);*/
         $dishes = new Dishes();
-        /*echo "<pre>";
-        var_dump($dishes->getFullIngredientDishes());
-        echo "</pre>";*/
-        //die();
+
         return $this->render('index', [
             'dataProvider' => $dishes->getFullIngredientDishes(),
         ]);

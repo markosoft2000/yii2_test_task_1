@@ -1,6 +1,7 @@
 <?php
 
 use yii\db\Migration;
+use \yii\db\oci\Schema;
 
 /**
  * Handles the creation for table `user`.
@@ -18,12 +19,16 @@ class m160621_161940_create_user extends Migration
         }
 
         $this->createTable('{{%user}}', [
-            'id' => $this->primaryKey()->notNull(),
-            'login' => $this->string(40)->notNull(),
-            'password' => $this->string(40)->notNull(),
-            'email' => $this->string(100)->notNull(),
-            'nickname' => $this->string(255)->notNull(),
-            'about' => $this->text(),
+                'id' => Schema::TYPE_PK,
+                'username' => Schema::TYPE_STRING . ' NOT NULL',
+                'auth_key' => Schema::TYPE_STRING . '(32) NOT NULL',
+                'password_hash' => Schema::TYPE_STRING . ' NOT NULL',
+                'password_reset_token' => Schema::TYPE_STRING,
+                'email' => Schema::TYPE_STRING . ' NOT NULL',
+                'role' => Schema::TYPE_SMALLINT . ' NOT NULL DEFAULT 10',
+                'status' => Schema::TYPE_SMALLINT . ' NOT NULL DEFAULT 10',
+                'created_at' => Schema::TYPE_INTEGER . ' NOT NULL',
+                'updated_at' => Schema::TYPE_INTEGER . ' NOT NULL',
         ], $tableOptions);
     }
 

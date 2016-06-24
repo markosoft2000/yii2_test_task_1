@@ -28,8 +28,20 @@ class Dishes extends \yii\db\ActiveRecord
      */
     const STATUS_HIDDEN = 0;
 
-    const FILTER_PARTIAL = 1;
+
+    /**
+     * Без фильтрации ингридиентов при поиске блюда
+     */
     const FILTER_ALL = 0;
+
+    /**
+     * Частичное совпадение ингридиентов при поиске блюда
+     */
+    const FILTER_PARTIAL = 1;
+
+    /**
+     * Полное совпадение ингридиентов при поиске блюда
+     */
     const FILTER_FULL_MATCH = 2;
 
     /**

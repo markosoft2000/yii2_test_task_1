@@ -4,6 +4,7 @@ namespace app\controllers;
 
 use Yii;
 use app\models\Ingredients;
+use app\models\User;
 use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -21,16 +22,19 @@ class IngredientsController extends Controller
     public function behaviors()
     {
         return [
-            /*'access' => [
+            'access' => [
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
                         'actions' => ['index', 'view', 'create', 'update', 'delete'],
                         'allow' => true,
                         'roles' => ['@'],
+                        'matchCallback' => function ($rule, $action) {
+                            return User::isUserAdmin(Yii::$app->user->identity->username);
+                        }
                     ],
                 ],
-            ],*/
+            ],
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [

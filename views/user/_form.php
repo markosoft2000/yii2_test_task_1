@@ -1,5 +1,4 @@
 <?php
-
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
@@ -12,18 +11,14 @@ use yii\widgets\ActiveForm;
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'login')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'username')->textInput() ?>
 
-    <?= $form->field($model, 'password')->passwordInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'email')->textInput() ?>
 
-    <?= $form->field($model, 'email')->textInput(['maxlength' => true]) ?>
-
-    <?= $form->field($model, 'nickname')->textInput(['maxlength' => true]) ?>
-
-    <?= $form->field($model, 'about')->textarea(['rows' => 6]) ?>
+    <?= $form->field($model, 'new_password')->passwordInput() ?>
 
     <div class="form-group">
-        <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
+        <?= Html::submitButton($model->isNewRecord ? 'Создать' : 'Сохранить', ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
     </div>
 
     <?php ActiveForm::end(); ?>
