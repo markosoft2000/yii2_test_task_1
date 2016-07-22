@@ -31,12 +31,12 @@ class m160621_153132_create_dishes extends Migration
 
         $this->createIndex('FK_ingredient', '{{%ingredient_dish}}', 'ingredient_id');
         $this->addForeignKey(
-            'FK_ingredient_dish', '{{%ingredient_dish}}', 'ingredient_id', '{{%ingredients}}', 'id', 'SET NULL', 'CASCADE'
+            'FK_ingredient_dish', '{{%ingredient_dish}}', 'ingredient_id', '{{%ingredients}}', 'id', 'RESTRICT', 'CASCADE'
         );
 
         $this->createIndex('FK_dish', '{{%ingredient_dish}}', 'dish_id');
         $this->addForeignKey(
-            'FK_dish_ingredient', '{{%ingredient_dish}}', 'dish_id', '{{%dishes}}', 'id', 'SET NULL', 'CASCADE'
+            'FK_dish_ingredient', '{{%ingredient_dish}}', 'dish_id', '{{%dishes}}', 'id', 'RESTRICT', 'CASCADE'
         );
     }
 

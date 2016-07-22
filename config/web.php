@@ -3,7 +3,7 @@
 $params = require(__DIR__ . '/params.php');
 
 $config = [
-    'id' => 'basic',
+    'id' => 'app',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'components' => [
@@ -15,9 +15,6 @@ $config = [
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
-        ],
-        'authManager' => [
-            'class' => 'yii\rbac\PhpManager',
         ],
         'user' => [
             'identityClass' => 'app\models\User',
@@ -47,6 +44,7 @@ $config = [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
+                'about' => 'site/about',
                 '<controller>/<action>' => '<controller>/<action>',
             ]
         ],
